@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drifty Words - Typing Challenge | Speed Typing Game</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="Drifty Words is a fast-paced typing game where you race against falling words. Test your speed, build combos, and master rare vocabulary in this addictive browser game.">
+  <meta name="keywords"
+    content="typing game, speed typing, word game, vocabulary game, educational game, browser game, free game, drifty words">
+  <meta name="author" content="Drifty Words Team">
+  <link rel="canonical" href="https://driftywords.grizz1e.com/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://driftywords.grizz1e.com/">
+  <meta property="og:title" content="Drifty Words - Ultimate Speed Typing Challenge">
+  <meta property="og:description"
+    content="Race against gravity! Type falling words, unlock powerups, and master tiered vocabulary in this addictive neon-styled typing game.">
+  <meta property="og:image" content="https://driftywords.grizz1e.com/assets/og-image.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://driftywords.grizz1e.com/">
+  <meta property="twitter:title" content="Drifty Words - Ultimate Speed Typing Challenge">
+  <meta property="twitter:description"
+    content="Race against gravity! Type falling words, unlock powerups, and master tiered vocabulary in this addictive neon-styled typing game.">
+  <meta property="twitter:image" content="https://driftywords.grizz1e.com/assets/og-image.png">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Drifty Words",
+    "url": "https://driftywords.grizz1e.com/",
+    "description": "A fast-paced browser-based typing game where players type falling words to score points and survive.",
+    "genre": ["Typing Game", "Educational", "Arcade"],
+    "playMode": "SinglePlayer",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "inLanguage": "en",
+    "author": {
+      "@type": "Organization",
+      "name": "Drifty Words Team"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "category": "free"
+    }
+  }
+  </script>
+</head>
+
+<body>
+
+  <div id="startScreen">
+    <div class="screen-title">DRIFTY WORDS</div>
+    <div class="screen-text">Type falling words before they reach the bottom!</div>
+    <div class="difficulty-info">
+      • Short words fall fast, long words fall slow<br>
+      • Chain correct words for combo multipliers<br>
+      • Rare vocabulary gives bonus points<br>
+      • Difficulty increases over time
+    </div>
+    <button class="screen-button" onclick="startGame()">START GAME</button>
+  </div>
+
+  <div id="gameOver" class="hidden">
+    <div class="screen-title">GAME OVER</div>
+    <div class="screen-text">Final Score: <span id="finalScore">0</span></div>
+    <div class="screen-text">Highest Combo: <span id="highestCombo">0</span></div>
+    <button class="screen-button" onclick="restartGame()">PLAY AGAIN</button>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="hud">
+    <div id="leftHud">
+      <div class="hud-item">Score: <span id="score">0</span></div>
+      <div class="hud-item" id="comboDisplay">Combo: <span id="combo">0x</span></div>
+      <div class="hud-item">Level: <span id="level">1</span></div>
+    </div>
+    <div id="rightHud">
+      <div class="hud-item" id="lives"></div>
+      <div class="hud-item">Time: <span id="timeDisplay">0s</span></div>
+    </div>
+  </div>
+
+  <input type="text" id="inputField" placeholder="Type words here..." />
+
+  <script src="words.js"></script>
+  <script src="game.js"></script>
+</body>
+
+</html>
