@@ -3,6 +3,98 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// Sound Manager
+class SoundManager {
+    constructor() {
+        this.context = null;
+        this.muted = false;
+        this.masterGain = null;
+    }
+
+    init() {
+        if (this.context) return;
+
+        try {
+            this.context = new (window.AudioContext || window.webkitAudioContext)();
+            this.masterGain = this.context.createGain();
+            this.masterGain.connect(this.context.destination);
+            this.masterGain = this.context.createGain();
+            this.masterGain.connect(this.context.destination);
+            this.masterGain.gain.value = 0.3; // Default volume
+        } catch (e) {
+            console.error('Web Audio API not supported', e);
+        }
+    }
+
+    toggleMute() {
+        this.muted = !this.muted;
+        if (this.masterGain) {
+            this.masterGain.gain.value = this.muted ? 0 : 0.3;
+        }
+        return this.muted;
+    }
+
+
+    playTone(freq, type, duration, startTime = 0, vol = 1) {
+        if (!this.context || this.muted) return;
+
+        // Resume context if suspended (browser policy)
+        if (this.context.state === 'suspended') {
+            this.context.resume();
+        }
+
+        const osc = this.context.createOscillator();
+        const gain = this.context.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.context.currentTime + startTime);
+
+        gain.gain.setValueAtTime(vol, this.context.currentTime + startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.context.currentTime + startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(this.context.currentTime + startTime);
+        osc.stop(this.context.currentTime + startTime + duration);
+    }
+
+    playWordComplete() {
+        // High pitched "ding"
+        this.playTone(800, 'sine', 0.1);
+        this.playTone(1200, 'sine', 0.1, 0.05);
+    }
+
+    playPowerup() {
+        // Ascending powerup sound
+        this.playTone(400, 'square', 0.1, 0);
+        this.playTone(600, 'square', 0.1, 0.1);
+        this.playTone(800, 'square', 0.2, 0.2);
+    }
+
+    playDamage() {
+        // Low pitched damage sound
+        this.playTone(150, 'sawtooth', 0.3);
+        this.playTone(100, 'sawtooth', 0.3, 0.1);
+    }
+
+    playGameOver() {
+        // Sad descending tones
+        this.playTone(400, 'triangle', 0.3, 0);
+        this.playTone(300, 'triangle', 0.3, 0.3);
+        this.playTone(200, 'triangle', 0.6, 0.6);
+    }
+
+    playCombo(comboCount) {
+        // Pitch increases with combo
+        const baseFreq = 440;
+        const freq = Math.min(baseFreq + (comboCount * 50), 1200);
+        this.playTone(freq, 'sine', 0.15);
+    }
+}
+
+const soundManager = new SoundManager();
+
 // Game state
 let gameState = 'start'; // 'start', 'playing', 'gameOver'
 let words = [];
@@ -101,7 +193,7 @@ function spawnWord() {
     if (gameState !== 'playing') return;
 
     // 3% chance to spawn a powerup instead of regular word
-    const spawnPowerup = Math.random() < 0.03 && difficultyLevel >= 2;
+    const spawnPowerup = Math.random() < 0.10 && difficultyLevel >= 2;
 
     let wordData, powerupType;
 
@@ -289,6 +381,7 @@ function loseLife() {
     }
 
     lives--;
+    soundManager.playDamage();
     combo = 0;
     stats.missedWords++;
     updateLivesDisplay();
@@ -300,6 +393,7 @@ function loseLife() {
 }
 
 function endGame() {
+    soundManager.playGameOver();
     gameState = 'gameOver';
     displayStats();
     document.getElementById('gameOver').classList.remove('hidden');
@@ -487,6 +581,7 @@ document.getElementById('inputField').addEventListener('input', (e) => {
             // Check if it's a powerup
             if (word.tier === 'powerup') {
                 activatePowerup(word.powerupType);
+                soundManager.playPowerup();
                 createParticles(word.x, word.y, '#00ffff', 50);
                 words.splice(i, 1);
                 e.target.value = "";
@@ -509,6 +604,9 @@ document.getElementById('inputField').addEventListener('input', (e) => {
 
             score += points;
             combo++;
+            if (combo > 1) soundManager.playCombo(combo);
+            else soundManager.playWordComplete();
+
             maxCombo = Math.max(maxCombo, combo);
 
             // Create visual effects
@@ -528,6 +626,7 @@ document.getElementById('inputField').addEventListener('input', (e) => {
 });
 
 function startGame() {
+    soundManager.init();
     gameState = 'playing';
     score = 0;
     lives = 5;
@@ -577,6 +676,15 @@ window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 });
+
+// Mute button handler
+document.getElementById('muteButton').addEventListener('click', (e) => {
+    const isMuted = soundManager.toggleMute();
+    e.target.textContent = isMuted ? '🔇' : '🔊';
+    // Initialize audio context if it hasn't started (e.g. if user clicked mute first)
+    soundManager.init();
+});
+
 
 // Initial animation loop (for particles on menu screens)
 requestAnimationFrame(update);
